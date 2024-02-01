@@ -1,0 +1,20 @@
+# gallica app
+## Requirement 
+- Nvidia GPU
+- Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+- Docker supported GPU
+
+# Docker Tutorial https://docs.docker.com/get-started/
+# COMMAND TO RUN :
+# building image
+docker-compose build
+# start container
+docker compose up
+# Specific container in docker compose
+docker-compose up -d image container_name
+# Stop containers
+docker-compose down
+# Running containers 
+docker-compose ps
+# Remove every data system, can be replaced by image, colume, network : Warning it may erase everything (inn Windows that doesn't work at all ;) ) 
+docker system prune 
