@@ -1,8 +1,11 @@
 # gallica app
 ## Requirement 
 - Nvidia GPU
-- Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-- Docker supported GPU
+  Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+
+- Docker: https://docs.docker.com/get-docker
+  Docker supported GPU : https://docs.docker.com/config/containers/resource_constraints/#gpu
+
 
 # Docker Tutorial https://docs.docker.com/get-started/
 # COMMAND TO RUN :
