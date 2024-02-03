@@ -45,4 +45,4 @@ WORKDIR /Gallica_App
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt 
 
-COPY /Gallica_App .
+COPY Gallica_App .
