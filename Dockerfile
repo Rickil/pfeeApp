@@ -4,7 +4,6 @@
 
 # Nvidia's official image to download 
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
-WORKDIR /Gallica_app
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Add a PPA for Python 3.10
@@ -42,8 +41,8 @@ RUN pip3 install cython opencv-python-headless
 RUN pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 # create workdir 
-
+WORKDIR /Gallica_App
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt 
 
-COPY . .
+COPY /Gallica_App .

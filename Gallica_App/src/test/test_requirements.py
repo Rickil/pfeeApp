@@ -5,6 +5,7 @@ import torchvision
 import detectron2
 import numpy as np
 import cv2
+import ultralytics
 
 def check_versions():
     versions = {
@@ -14,7 +15,9 @@ def check_versions():
         "Torchvision": torchvision.__version__,
         "Detectron2": detectron2.__version__,
         "NumPy": np.__version__,
-        "OpenCV": cv2.__version__
+        "OpenCV": cv2.__version__, 
+        "Ultralytics":ultralytics.__version__
+        
     }
     return "\n".join([f"{lib}: {ver}" for lib, ver in versions.items()])
 

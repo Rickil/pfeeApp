@@ -7,6 +7,7 @@
   Docker supported GPU : https://docs.docker.com/config/containers/resource_constraints/#gpu
 
 
+
 # Docker Tutorial https://docs.docker.com/get-started/
 # COMMAND TO RUN :
 # building image
@@ -15,6 +16,7 @@ docker-compose build
 docker compose up
 # Specific container in docker compose
 docker-compose up -d image container_name
+# Gradio App launched at http://localhost:7860/
 # Stop containers
 docker-compose down
 # Running containers 

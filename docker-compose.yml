@@ -9,12 +9,11 @@ services:
       - GRADIO_SERVER_PORT=7860
     ports:
       - "7860:7860" # Open port
+      - "8888:8888"
     volumes: 
-      - ./data:/workdir/data # Mount the current directory on your computer to /workdir in the container , chan 
-    command: ["python3", "test_requirements.py"]  # Replace with your actual script filename
+      - ./data:/Gallica_App # Mount the current directory on your computer to /workdir in the container , chan 
     runtime: nvidia  # Use NVIDIA Container Toolkit
-
-    #specific and limited deployment
+    command: /bin/bash -c "jupyter lab --ip='0.0.0.0' --port=8888 --no-browser --allow-root & python3 Gallica_App/src/test/test_app.py"
     deploy:   
       resources:
         reservations:
@@ -22,4 +21,5 @@ services:
           - driver: nvidia
             count: 1
             capabilities: [gpu]
+
 
