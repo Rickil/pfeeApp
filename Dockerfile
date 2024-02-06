@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     python3.10 \
     python3.10-dev \
     python3.10-distutils \
+    python3-apt \
     git \
     cmake \
     wget \
@@ -24,8 +25,9 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libjpeg-dev \
     libgl1-mesa-glx \
-    libpng-dev
-
+    libpng-dev \
+    default-jre 
+RUN ln -s /usr/lib/python3/dist-packages/apt_pkg.cpython-310-x86_64-linux-gnu.so /usr/lib/python3/dist-packages/apt_pkg.so
 # get latest pip
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 
@@ -41,8 +43,8 @@ RUN pip3 install cython opencv-python-headless
 RUN pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 # create workdir 
-WORKDIR /Gallica_App
+WORKDIR /root/Gallica_App
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt 
-
+RUN ln -sf /bin/bash /bin/sh
 COPY Gallica_App .

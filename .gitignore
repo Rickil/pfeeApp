@@ -1,2 +1,10 @@
 data
 Gallica_App/data
+Gallica_App/.Trash-0
+Gallica_App/src/.ipynb_checkpoints
+*/*/.ipynb_checkpoints
+*/.ipynb_checkpoints
+*/*/*/.ipynb_checkpoints
+Gallica_App/models
+Gallica_App/*/__pycache__
+Gallica_App/notebooks/output
