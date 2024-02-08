@@ -19,7 +19,7 @@ Building image : docker compose build
 
 Start container :  docker compose up
 
-After this commands you can get a link with a tocken, it is necessary to go to this link. 
+After this commands a link is displayed with a tocken, it is necessary to go to this link. 
 The port is localhost:8888.
 You can also access to the environment in VScode by attaching it with Docker Extension.
 
