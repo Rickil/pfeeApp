@@ -34,8 +34,10 @@ The port to access is http://localhost:7860/   (a link will appear with 0000:786
 
 ### The app functionnalities : 
 Only "Evaluate an image" tab work , only on Detectron2 & LayoutParser
-Default classes has 
-#TODO : 
+
+There are 5 classes by default
+
+Task to do : 
 - debug gallery
 - add metrics cocopanoptic
 - add more visualisation
