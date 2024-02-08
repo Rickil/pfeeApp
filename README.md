@@ -4,7 +4,7 @@ This respository outlines our end-of-study project on the segmentation of graphi
 
 
 ### Authors : 
-Vincent THONG, Zoe Sellos, Yanis Farhat, Benjamin Clene, Maxime Boy-Arnould
+Vincent Thong, Zoe Sellos, Yanis Farhat, Benjamin Clene, Maxime Boy-Arnould
 ### Supervised by: 
 Jean-Philippe Moreux (BNF),
 Joseph Chazalon (EPITA)
