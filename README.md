@@ -7,7 +7,7 @@ Joseph Chazalon (EPITA)
 ## Requirements to run the environment 
 - Nvidia GPU
   Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-- 16Go Ram is really just for training
+- 16Go Ram is the minimum to train a dataset (not enough I think)
 - Docker Image Size = 15-20 Go
 ### Docker Tutorial 
 - https://docs.docker.com/get-started/
@@ -30,8 +30,6 @@ The port to access is http://localhost:7860/   (a link will appear with 0000:786
 
 ### The app functionnalities : 
 Only "Evaluate an image" tab work , only on Detectron2 & LayoutParser
-
-
 #TODO : 
 - debug gallery
 - add metrics cocopanoptic
