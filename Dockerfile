@@ -1,8 +1,7 @@
 # Base image with CUDA 11.7.1 and cuDNN 8 on Ubuntu 20.04 for detectron2 according to https://github.com/facebookresearch/detectron2/issues/5008
-#i tried to use 11.3 but i had errors , need confirmation for that too
-# https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=11.7
 
 # Nvidia's official image to download 
+# https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=11.7
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -35,14 +34,15 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
 # Upgrade pip
-RUN pip3 install --upgrade pip
 # Install Torch, version from https://pytorch.org/get-started/previous-versions/
-RUN pip3 install torch==2.0.1+cu117  torchvision==0.15.2+cu117 -f https://download.pytorch.org/whl/torch_stable.html
-#install cocotools and detectron2
-RUN pip3 install cython opencv-python-headless 
-RUN pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
-# create workdir 
+RUN pip3 install --upgrade pip cython \
+    opencv-python-headless \
+    torch==2.0.1+cu117  \
+    torchvision==0.15.2+cu117 -f https://download.pytorch.org/whl/torch_stable.html \
+    && pip3 install cython opencv-python-headless \
+    && pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI' \
+    && pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
+
 WORKDIR /root/Gallica_App
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt 
