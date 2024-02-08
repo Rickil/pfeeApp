@@ -25,3 +25,10 @@ You can also access to the environment in VScode by attaching to it with Docker 
 cd app; python3 app.py
 
 The port to access is http://localhost:7860/   (a link will appear with 0000:7860 this one doesn't work)
+
+### The app : 
+Only "Evaluate an image" tab work
+#TODO : 
+- debug gallery
+- add metrics cocopanoptic
+- add more visualisation
