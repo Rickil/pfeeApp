@@ -4,10 +4,11 @@ Vincent THONG, Zoe Sellos, Yanis Farhat, Benjamin Clene, Maxime Boy-Arnould
 ### Supervised by: 
 Jean-Philippe Moreux (BNF),
 Joseph Chazalon (EPITA)
-### Requirements to run the environment 
+## Requirements to run the environment 
 - Nvidia GPU
   Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-
+- 16Go Ram is really just for training
+- Image Size = 15-20 Go
 ### Docker Tutorial 
 - https://docs.docker.com/get-started/
 - Docker: https://docs.docker.com/get-docker
