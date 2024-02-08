@@ -111,7 +111,7 @@ def get_detectron2_paths(config):
     if config in default_array:
         return model_zoo.get_config_file(default_detectron2), model_zoo.get_checkpoint_url(default_detectron2)
     else:
-        return os.path.join(dt2_weights_directory, config), os.path.join(dt2_weights_directory, config)
+        return model_zoo.get_config_file(default_detectron2), os.path.join(dt2_weights_directory, config)
 
 def get_layoutparser_paths(weight):
     # Simplification: centralise la logique de configuration de LayoutParser
@@ -283,12 +283,12 @@ def draw_bounding_boxes(image_path, boxes, use_percentage=False):
             
             # Draw the class name. Adjust the position as needed.
             try:
-                font = ImageFont.truetype("../config/arial.ttf", 15)  # Adjust the font path as needed
+                font = ImageFont.truetype("../config/arial.ttf", 100)  # Adjust the font path as needed
             except IOError:
                 font = ImageFont.load_default()
             text_position = (x + 5, y - 15)  # Adjust the position offset as per your requirement
             draw.text(text_position, label, fill=color, font=font)
             
-            draw.rectangle([x, y, x + width, y + height], outline=color, width=3)
+            draw.rectangle([x, y, x + width, y + height], outline=color, width=10)
             box_info.append(f"Class: {label}, Coordinates: {x}, {y}, {width}, {height}")
     return img, box_info
