@@ -48,7 +48,6 @@ annotations = json_data["annotations"]
 images = json_data["images"]
 
 def predict_with_model(image_path, predictor):
-
     classes = [
             'tampon',
             'écriture manuscrite',
