@@ -1,201 +1,101 @@
-import gradio as gr
-from PIL import Image, ImageDraw, ImageFont
-import json
-import torch
-print(torch.__version__)
-import torchvision.transforms as T
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
-import detectron2
-from detectron2.engine import DefaultPredictor
-from detectron2.config import get_cfg
-from detectron2.modeling import build_model
-from detectron2.checkpoint import DetectionCheckpointer
-from detectron2 import model_zoo
 import os
-import numpy as np
-import cv2
+import gradio as gr
+from gradio_utils import list_weight_files, create_summary_message, process_drop, initialize_predictors, process_gallery
+from gradio_utils import classes, default_classes, dt2_weights_directory, lP_weights_directory
 
-# Load a configuration file
-cfg = get_cfg()
+# Available models for list
+models = ["Detectron2", "LayoutParser", "YOLOv8"]
+# Get the list of weight files for both models
 
-# Specify the path to the config file for the pre-trained model
-config_file = "C:\dev\pfeeApp\config.yml"
-cfg.merge_from_file(config_file)
-
-# Specify the path to the pre-trained model weights
-#model_weights = "C:\dev\pfeeApp\model_final.pth"
-#cfg.MODEL.WEIGHTS = model_weights
-
-cfg.DATALOADER.NUM_WORKERS = 2
-cfg.SOLVER.IMS_PER_BATCH = 2
-cfg.SOLVER.BASE_LR = 0.0025
-cfg.SOLVER.MAX_ITER = 1000 
-cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
-cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5
-
-# Set the device (CPU or GPU) for inference
-cfg.MODEL.DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Chemin vers le dossier des images et le fichier JSON
-images_path = "image/"
-json_file = "galica/gallicaimages_set1.json"
-
-# Lire le fichier JSON
-with open(json_file, "r", encoding="utf-8") as file:
-    json_data = json.load(file)
-
-annotations = json_data["annotations"]
-images = json_data["images"]
-
-def predict_with_model(image_path, predictor):
-    classes = [
-            'tampon',
-            'écriture manuscrite',
-            'écriture typographique',
-            'photographie',
-            'estampe',
-            'décoration',
-            'timbre',
-            'dessin',
-            'nothing'
-        ]
+def update_dropdowns():
+    layoutparser_weight_files = ["Default"] + list_weight_files(lP_weights_directory)
+    detectron2_weight_files = ["Default"] + list_weight_files(dt2_weights_directory)
+    LPdropDown = gr.Dropdown(choices=layoutparser_weight_files,  label="LayoutParser Weight File")
+    DT2dropDown = gr.Dropdown(choices=detectron2_weight_files , label="Detectron2 Weight File")
+    return LPdropDown,  DT2dropDown
     
-    # Read the image with OpenCV
-    im = cv2.imread(image_path)
-
-    # Convert color from BGR to RGB (Detectron2 expects RGB)
-    im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-
-    # Perform prediction using Detectron2
-    outputs = predictor(im)
-
-    # Extract the instances
-    instances = outputs["instances"].to("cpu")
-
-    #print(instances.pred_boxes.tensor.tolist(),instances.pred_classes.tolist())
-
-    # Check if any instances are detected
-    if len(instances) > 0:
-        # Extract bounding boxes, scores, and classes
-        boxes = instances.pred_boxes.tensor.numpy()
-        scores = instances.scores.numpy()
-        labels = instances.pred_classes.numpy()
-
-        # Filter predictions with a minimum confidence score
-        predictions = []
-        for box, label in zip(boxes, labels):
-            xmin, ymin, xmax, ymax = box
-            predictions.append({"bbox": {"x": xmin, "y": ymin, "width": xmax - xmin, "height": ymax - ymin}, "label": classes[label]})
-
-        return predictions
-    else:
-        print("No instances detected.")
-        return []
-
-def get_bounding_boxes(image_id):
-    for annotation in annotations:
-        if annotation["id"] == image_id:
-            return [{"bbox": result["bbox"], "label": result["label"][0] if result["label"] else "nothing"} for result in annotation["result"]]
-    return None
-
-# Fonction pour dessiner des bounding boxes sur une image
-def draw_bounding_boxes(image_path, boxes,use_percentage = False):
-    with Image.open(image_path) as img:
-        # Convertir l'image en RVB si elle est en niveaux de gris
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-
-        draw = ImageDraw.Draw(img)
-
-        # Carte des couleurs pour les classes
-        class_color_map = {
-            'nothing': "black",
-            'tampon': "blue",
-            'écriture manuscrite': "green",
-            'écriture typographique': "yellow",
-            'photographie': "purple",
-            'estampe': "orange",
-            'décoration': "pink",
-            'timbre': "red",
-            'dessin': "brown"
-        }
 
 
-        box_info = []  # Pour stocker les informations sur les boîtes
-
-        for box in boxes:
-                bbox = box["bbox"]
-                label = box["label"]
-                color = class_color_map.get(label, "black")
-                x = bbox["x"]
-                y = bbox["y"]
-                width = bbox["width"]
-                height = bbox["height"]
-
-                 # Convert percentage to pixel values if required
-                if use_percentage:
-                    x = x * img.width / 100
-                    y = y * img.height / 100
-                    width = width * img.width / 100
-                    height = height * img.height / 100
-
-                # Draw the class name. Adjust the position as needed.
-                font = ImageFont.truetype("arial.ttf", 15)
-                text_position = (x + 5, y - 15)  # Adjust the position offset as per your requirement
-                draw.text(text_position, label, fill=color, font=font)
-
-                draw.rectangle([x, y, x + width, y + height], outline=color, width=3)
-                box_info.append(f"Class: {label}, Coordinates: {x}, {y}, {width}, {height}")
-
-        return img, box_info
-      
-def combined_image_processing(image_id, model):
-    selected_image_file = f"{image_id}.jpg"
-    image_path = f"{images_path}{selected_image_file}"
-
-    # Get ground truth boxes
-    ground_truth_boxes = get_bounding_boxes(image_id)
-    if ground_truth_boxes is None:
-        return "No annotations found for this image."
-
-    # Draw ground truth bounding boxes
-    gt_img, gt_box_info = draw_bounding_boxes(image_path, ground_truth_boxes, use_percentage=True)
-
-    # If model predictions are requested
-    if model != "None":
-        model_weights = "C:\dev\pfeeApp\models\\" + model + ".pth"
-        cfg.MODEL.WEIGHTS = model_weights
-        predictor = DefaultPredictor(cfg)
-        # Get model prediction boxes
-        prediction_boxes = predict_with_model(image_path, predictor)
-        # Draw prediction bounding boxes
-        pred_img, pred_box_info = draw_bounding_boxes(image_path, prediction_boxes)
-        return gt_img, gt_box_info, pred_img, pred_box_info
-
-    # If model predictions are not requested, return only ground truth
-    return gt_img, gt_box_info, None, "No model predictions requested."
-
-
-# Interface Gradio
-image_id_list = [image["id"] for image in images]
-
-#list models in models folder without the extension
-models_list = ["None"] + [model.split(".")[0] for model in os.listdir("models")]
-print(models_list)
-
-iface = gr.Interface(
-    fn=combined_image_processing,
-    inputs=[
-        gr.Dropdown(choices=image_id_list),
-        gr.Dropdown(choices=models_list, label="Model")
-    ],
-    outputs=[
-        gr.Image(type="pil", label="Ground Truth Image"),
-        gr.Textbox(label="Ground Truth Box Info"),
-        gr.Image(type="pil", label="Prediction Image"),
-        gr.Textbox(label="Prediction Box Info")
-    ],
-    title="Galica Image Annotation"
-)
-
-iface.launch()
+def setup_model_selection_interface():
+    selected_models = gr.CheckboxGroup(choices=models, label="Select Model(s)", scale=2)
+    
+    lp_weights_files = ["Default"] + list_weight_files(lP_weights_directory)
+    dt2_weight_files = ["Default"] + list_weight_files(dt2_weights_directory)
+    layoutparser_weight = gr.Dropdown(choices=lp_weights_files, label="LayoutParser Weight File", allow_custom_value=True)
+    detectron2_weight = gr.Dropdown(choices=dt2_weight_files, label="Detectron2 Weight File", allow_custom_value=True)
+    ref_button = gr.Button("Refresh list", size='sm')
+                
+    class_selection = gr.Radio(choices=["Default Classes", "All Classes"], label="Class Selection", value="Default Classes", scale=2)
+    threshold_input = gr.Number(label="Detection Threshold", value=0.8, step=0.01, minimum=0.0, maximum=1.0, interactive=True)
+    
+    # Returning all components to include in the UI
+    return (selected_models, layoutparser_weight, detectron2_weight, ref_button, class_selection, threshold_input)
+# State is an class which can be used across blocks, tabs,...
+with gr.Blocks(title="Gallica BNF Benchmark Visualisation Tool by EPITA", theme=gr.themes.Soft()) as demo:
+    ground_truths = gr.State([])
+    predictions = gr.State([])
+    message = gr.State([])
+    metrics = gr.State([])
+    
+    with gr.Tab("Set Evaluation"):
+        with gr.Row():
+            with gr.Column():
+                # Instanciate gradio objects, TODO: simplify instaciation, regroupe weight obteained if possible for more visbility
+                selected_mds, lP_weight, dt2_weight, ref_btn, selected_cls, threshold_input = setup_model_selection_interface()
+                ref_btn.click(
+                    fn=update_dropdowns,
+                    inputs=[],
+                    outputs=[lP_weight, dt2_weight]
+                )
+                btn_process_images = gr.Button("Process Images", size='sm')
+                     
+            with gr.Column():
+                info = gr.Text(label="Information", scale=3)  
+                
+            btn_process_images.click(process_gallery, 
+                                    inputs=[selected_mds, dt2_weight, lP_weight, selected_cls, threshold_input], 
+                                    outputs=[info, ground_truths, predictions])  
+    with gr.Tab("Metrics"):
+        metrics_output = gr.Text(label="Information", scale=3)
+        # This button is used to refresh the metrics tab with the latest state information.
+        refresh_btn = gr.Button("Refresh Metrics")
+        def get_data():
+            return metrics
+        refresh_btn.click(get_data, outputs=metrics_output)
+        # add an upload of the report HTML static 
+    with gr.Tab("Gallery"):
+        # Galleries of each Models Maybe add a DropDown to select display
+        with gr.Column():
+            gt = gr.Gallery(label="GroundTruth")
+            pred = gr.Gallery(label="Predictions")
+            refresh_btn = gr.Button("Refresh Metrics")
+            def get_gt_pred():
+                return ground_truths, predictions
+            refresh_btn.click(get_gt_pred, outputs=[gt, pred]) 
+    with gr.Tab("Evaluate an Image"):
+        with gr.Row():
+            with gr.Column():
+                selected_mds, lP_weight, dt2_weight, ref_btn, selected_cls, threshold_input = setup_model_selection_interface()
+                ref_btn.click(
+                    fn=update_dropdowns,
+                    inputs=[],
+                    outputs=[lP_weight, dt2_weight]
+                )
+                btn_process_drop = gr.Button("Process Images", size='sm')
+                     
+            with gr.Column():
+                info = gr.Text(label="Information", scale=3)  
+                input_file = gr.File(type="filepath")
+        with gr.Row():
+            with gr.Row():
+                im = gr.Image(label="Drop Image", scale= 2, mirror_webcam=False, interactive=False)
+                gt_img = gr.Image(label="Ground Truth", scale=2, interactive=False)
+                gt_info = gr.Textbox(label="Ground Truth Box Info", interactive=False)
+        with gr.Row():
+            pred_output = gr.Gallery(label="Predictions", scale=4, interactive=True, show_label=True)
+            box_info = gr.Textbox(label="Prediction Box Info", interactive=False)
+            
+        btn_process_drop.click(process_drop, 
+                                inputs=[input_file, selected_mds, dt2_weight, lP_weight, selected_cls, threshold_input], 
+                                outputs=[info, im, gt_img, gt_info, pred_output, box_info])
+demo.launch()

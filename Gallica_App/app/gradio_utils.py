@@ -30,7 +30,7 @@ json_path = gt_json_dir + "gallica_dataset_file.json"
 with open(json_path) as file:
     json_data = json.load(file)
 annotations = json_data["annotations"]
-images = json_data["images"]
+images_json = json_data["images"]
 # Preset classes and default classes
 default_classes = [
     'tampon',
@@ -75,8 +75,23 @@ def list_weight_files(directory):
     # List all files in the directory 
     return [file for file in os.listdir(directory) if os.path.isfile(os.path.join(directory, file)) and file.endswith(".pth")]
 
-def create_summary_message(selected_models, dt2_weight, lP_weight, class_selection):
-    message = "Selected models: \n"
+def get_image_file(directory=img_dir):
+    """
+        Function to list weight files in a directory
+    """
+    # Ensure the directory exists to avoid errors
+    if not os.path.exists(directory):
+        print(f"Directory {directory} does not exist.")
+        return []
+    return [directory + file for file in os.listdir(directory) if os.path.isfile(os.path.join(directory, file)) and file.endswith(".jpg")]
+
+def create_summary_message(selected_models, dt2_weight, lP_weight, class_selection, image_dir=""):
+    message = "Starting Image Processing\n"
+    
+    if image_dir != "":
+        message += "Directory: " + image_dir + "\n"
+
+    message += "Selected models: \n"
     if selected_models == [None, "", []]:
         message = "No Models used \n"
     # Handle Detectron2 model selection and configuration
@@ -237,7 +252,6 @@ def extract_id_from_path(file_path):
     if file_extension.lower() in ['.jpg', '.jpeg', '.png']:
         base_name = os.path.basename(file_path)
         file_name = os.path.splitext(base_name)[0]
-        print(file_name)
         return file_name
     else:
         return "Le fichier n'est pas une image"
@@ -283,12 +297,60 @@ def draw_bounding_boxes(image_path, boxes, use_percentage=False):
             
             # Draw the class name. Adjust the position as needed.
             try:
-                font = ImageFont.truetype("../config/arial.ttf", 100)  # Adjust the font path as needed
+                font = ImageFont.truetype("../config/arial.ttf", 10)  # Adjust the font path as needed
             except IOError:
                 font = ImageFont.load_default()
             text_position = (x + 5, y - 15)  # Adjust the position offset as per your requirement
             draw.text(text_position, label, fill=color, font=font)
             
-            draw.rectangle([x, y, x + width, y + height], outline=color, width=10)
+            draw.rectangle([x, y, x + width, y + height], outline=color, width=4)
             box_info.append(f"Class: {label}, Coordinates: {x}, {y}, {width}, {height}")
     return img, box_info
+
+# main function for drop components
+def process_gallery(selected_models, dt2_weight, lP_weight, class_selection, detection_threshold):
+    image_paths = get_image_file()
+    if class_selection == "Default Classes":
+        num_class = len(default_classes)
+    else: 
+        num_class =  len(classes)
+    # create information 
+    message = create_summary_message(selected_models, dt2_weight, lP_weight, class_selection, image_dir=img_dir)
+    # initialize models
+    ground_truths = []
+    predictions = []
+    boxes_infos = ""
+    if len(selected_models) == 0:
+        message += "\nModels not used.\n"
+        return message, None, ground_truths, predictions, boxes_infos
+    predictors = initialize_predictors(selected_models, dt2_weight, lP_weight, num_class, detection_threshold)
+    
+    for image_input in image_paths:
+        origin_img = Image.open(image_input)
+        if origin_img.mode != 'RGB':
+            origin_img = origin_img.convert('RGB')
+        
+        file_id = extract_id_from_path(image_input)
+        # get bounding boxes from json with id
+        ground_truth_boxes = get_bounding_boxes(file_id, annotations)
+        #Draw Bounding boxes    
+        if ground_truth_boxes is None:
+            message += f"\nNo annotations: {file_id} \n"
+            gt_img = origin_img
+            
+        else:
+            gt_img = draw_bounding_boxes(image_input, ground_truth_boxes, use_percentage=True)
+        ground_truths.append((gt_img, file_id))    
+        #Predict for each models
+        boxes_infos += f"Boxes Infos: {file_id} \n"
+        for model in selected_models:
+            # Get model prediction boxes
+            if model in ["Detectron2", "LayoutParser"]:
+                prediction_boxes, time = predict_with_model(image_input, predictors[model])
+                
+                pred_img, info = draw_bounding_boxes(image_input, prediction_boxes)
+                predictions.append((pred_img, model + f" - {file_id}"))
+                boxes_infos += f"- {model} : \n  {info}\n"
+            else:
+                continue
+    return message, ground_truths, predictions
