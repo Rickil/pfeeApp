@@ -1,5 +1,5 @@
 # Benchmark of Segmentation Models for Gallica Image by EPITA  
-This respository outlines our end-of-study project on the segmentation of graphic content (texts, images, etc.) for the French National Library (BNF). We have explored and integrated Deep Learning segmentation models such as YoloV8, Detectron2, and LayoutParser. Detailed jupyter notebook tutorials are provided to facilitate the use of these models and the metric Cocopanoptic. Furthermore, a visualization application has been developed to enable practical testing of Detectron2 and LayoutParser. This application was created in Python using Gradio, thus offering an intuitive user interface for testing the models on images.
+This respository outlines our end-of-study project on the segmentation of graphic content (texts, images, etc.) for the French National Library (BNF). We have explored and integrated Deep Learning segmentation models such as YoloV8, Detectron2, and LayoutParser. Detailed jupyter notebook tutorials are provided to facilitate the use of these models and the metric Cocopanoptic. Furthermore, a visualization application has been developed to enable practical testing of Detectron2 and LayoutParser. This application was created in Python using Gradio, thus offering an intuitive user interface to evaluate models on images.
 
 
 ### Authors : 
