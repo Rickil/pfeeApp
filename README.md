@@ -8,7 +8,7 @@ Joseph Chazalon (EPITA)
 - Nvidia GPU
   Nvidia Container Toolkit : https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 - 16Go Ram is really just for training
-- Image Size = 15-20 Go
+- Docker Image Size = 15-20 Go
 ### Docker Tutorial 
 - https://docs.docker.com/get-started/
 - Docker: https://docs.docker.com/get-docker
